@@ -1,0 +1,44 @@
+---
+test_name: Test that the list can be upated by PUT request in /list endpoint
+includes:
+  - !include common.yaml
+
+stages:
+  - name: Create a list by POST request and save its id
+    request:
+      method: POST
+      url: "{base_url}/{api_version}/list"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+      json:
+        name: "My Test List to check update list functionality"
+        iso_639_1: "en"
+    response:
+      status_code: 201
+      save:
+        json:
+          list_id: id
+
+  - name: Update the newly created list by PUT request
+    request:
+      method: PUT
+      url: "{base_url}/{api_version}/list/{list_id}"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+      json:
+        description: This is the updated list which is created by me
+        name: My Updated List
+    response:
+      status_code: 201
+
+  - name: Delete the created list to clean the data
+    request:
+      method: DELETE
+      url: "{base_url}/{api_version}/list/{list_id}"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+    response:
+      status_code: 200
+

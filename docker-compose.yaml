@@ -1,0 +1,14 @@
+version: "3.4"
+
+services:
+  api-tests:
+    image: "python:alpine"
+    command: sh -c 'pip install -r requirements.txt && pytest --tb=long && rm -Rf __pycache__'
+    volumes:
+      - .:/usr/src/app
+    working_dir: /usr/src/app/ApiTests
+
+
+
+
+

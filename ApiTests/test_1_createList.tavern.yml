@@ -1,0 +1,81 @@
+---
+test_name: Test that the list can be created successfully by POST request in /list endpoint
+includes:
+  - !include common.yaml
+
+stages:
+  - name: Create a list by POST request
+    request:
+      method: POST
+      url: "{base_url}/{api_version}/list"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: "application/json"
+      json:
+        name: "My Test List to check create list functionality"
+        iso_639_1: "en"
+    response:
+      status_code: 201
+      json:
+        status_code: 1
+        status_message: The item/record was created successfully.
+        success: true
+        id: !anything
+      save:
+        json:
+          list_id: id
+
+  - name: Retrieve the newly created list
+    request:
+      method: GET
+      url: "{base_url}/{api_version}/list/{list_id}?page=1&api_key={api_key}"
+      headers:
+        Authorization: "Bearer {access_token}"
+        Content-Type: application/json;charset=utf-8
+    response:
+      status_code: 200
+
+  - name: Delete the created list
+    request:
+      method: DELETE
+      url: "{base_url}/{api_version}/list/{list_id}"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+    response:
+      status_code: 200
+
+
+---
+test_name: Test the false positive cases of list creation in /list endpoint
+includes:
+  - !include common.yaml
+
+stages:
+  - name: Test that proper error is returned when providing invalid data in the post request
+    request:
+      method: POST
+      url: "{base_url}/{api_version}/list"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+        Accept: application/json
+      json:
+        iso_639_1: "en"
+    response:
+      status_code: 422
+      json:
+        errors:
+          - name must be provided
+
+  - name: Test that list cannot be created with invalid token
+    request:
+      method: POST
+      url: "{base_url}/{api_version}/list"
+      headers:
+        Authorization: "Bearer {access_token}"
+        Content-Type: application/json;charset=utf-8
+      json:
+        name: "My Cool List 1"
+        iso_639_1: "en"
+    response:
+      status_code: 401

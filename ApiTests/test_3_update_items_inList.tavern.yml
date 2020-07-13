@@ -1,0 +1,144 @@
+---
+test_name: Test the functionality to add,update and delete items in a list POST request
+includes:
+  - !include common.yaml
+
+stages:
+  - name: Create a list by POST request and save its id
+    request:
+      method: POST
+      url: "{base_url}/{api_version}/list"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+      json:
+        name: "My Cool List"
+        iso_639_1: "en"
+    response:
+      status_code: 201
+      save:
+       json:
+        list_id: id
+
+  - name: Add items to the newly created list with POST request
+    request:
+      method: POST
+      url: "{base_url}/{api_version}/list/{list_id}/items"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+      json:
+        items:
+          - media_type: movie
+            media_id: 550
+          - media_type: movie
+            media_id: 244786
+          - media_type: tv
+            media_id: 1396
+          - media_type: tv
+            media_id: 70523
+    response:
+      status_code: 200
+
+  - name: Add comments to the existing items in the list using PUT endpoint
+    request:
+      method: PUT
+      url: "{base_url}/{api_version}/list/{list_id}/items"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+      json:
+        items:
+          - media_type: movie
+            media_id: 550
+            comment: "Awesome movie watch it later"
+    response:
+      status_code: 200
+
+  - name: Get the status of an item from the newly created list
+    request:
+      method: GET
+      url: "{base_url}/{api_version}/list/{list_id}/item_status?"
+      params:
+        media_id: 550
+        media_type: movie
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+    response:
+      status_code: 200
+      json:
+        media_id: 550
+        success: true
+        id: !int "{list_id}"
+        status_code: 1
+        status_message: Success.
+        media_type: movie
+
+  - name: Delete specific item from the list
+    request:
+      method: DELETE
+      url: "{base_url}/{api_version}/list/{list_id}/items"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+      json:
+        items:
+          - media_type: movie
+            media_id: 550
+    response:
+      status_code: 200
+      json:
+        status_code: 1
+        status_message: Success.
+        success: true
+        results:
+          - media_id: 550
+            success: true
+            media_type: movie
+
+
+  - name: Get the status of an item which doesnt exist in the list
+    request:
+      method: GET
+      url: "{base_url}/{api_version}/list/{list_id}/item_status?"
+      params:
+        media_id: 550
+        media_type: movie
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+    response:
+      status_code: 404
+      json:
+        status_code: 34
+        status_message: The resource you requested could not be found.
+        success: false
+        id: !int "{list_id}"
+
+  - name: Remove all the items from the list
+    request:
+      method: GET
+      url: "{base_url}/{api_version}/list/{list_id}/clear"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+        Content-Type: application/json;charset=utf-8
+    response:
+      status_code: 200
+      json:
+        success: true
+        id: !int "{list_id}"
+        status_code: 1
+        status_message: Success.
+        items_deleted: !anyint
+
+  - name: Delete the created list
+    request:
+      method: DELETE
+      url: "{base_url}/{api_version}/list/{list_id}"
+      headers:
+        Authorization: "Bearer {write_access_token}"
+    response:
+      status_code: 200
+
+
